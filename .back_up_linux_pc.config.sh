@@ -41,5 +41,5 @@ set_user_overrides_for_rsync() {
     # COMPRESS_ARRAY=("--compress")
 
     # VERBOSE_ARRAY=()  # disable verbose
-    PROGRESS_ARRAY=()  # disable progress
+    # PROGRESS_ARRAY=()  # disable progress
 }

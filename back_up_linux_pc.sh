@@ -326,8 +326,6 @@ do_rsync_backup() {
 
     # echo "CMD: rsync --dry-run "${OPTIONS_ARRAY[@]}" $SRC_FOLDER $DEST_FOLDER"  # debugging
 
-    # set -x  # debugging: see the actual cmds being run
-
     # NB: `sudo` is required below when running `rsync` in order to even **read** certain files and
     # directories. WithOUT sudo, for instance, I will get these "Permission denied" errors!:
     #
@@ -365,6 +363,8 @@ Now running rsync cmd:
     log_str="\n===== RSYNC LOG START =====\n"
     echo -e "$log_str" | tee -a $LOG_STDOUT
     echo -e "$log_str" >> $LOG_STDERR
+
+    # set -x  # debugging: see the actual cmds being run, including the main rsync cmd!
 
     # Actually run the rsync cmd here!:
     # NB: explicitly include `--dry-run` for safety in testing

@@ -63,3 +63,21 @@ TODO; start by looking at the comments at the top of `back_up_linux_pc.sh`.
 ## TODO
 
 1. Add code (perhaps using Python3?) to automatically clean up a log file afterwards by deleting all lines which begin with 5 or more spaces, since these are the lines which show only global percent (%) complete status indicators rather than showing actual files or paths copied or deleted. I'd really like a better picture of what is being done to the files stored in my permanent logs, not just thousands of lines showing % complete at that instant!
+
+
+## Example `rsync` runs and cmds
+
+You can extract the main rsync run cmds using `set -x` in your script, just before the place where you want your cmd to be printed. It will be printed with a `+` symbol just before it. 
+
+Here are some example commands I extracted, modified, and manually ran during testing:
+
+1. works
+    `sudo rsync --dry-run --dry-run -rah -v --stats --relative --delete --delete-excluded --partial-dir=.rsync-partial --files-from /home/gabriel/.back_up_linux_pc.files_to_include.txt --exclude-from /home/gabriel/.back_up_linux_pc.files_to_exclude.txt / /media/gabriel/Linux_bak/Backups/rsync/Main_Dell_laptop`
+
+1. works great with logging!
+    `sudo rsync --dry-run --dry-run -rah -v --stats --relative --delete --delete-excluded --partial-dir=.rsync-partial --files-from /home/gabriel/.back_up_linux_pc.files_to_include.txt --exclude-from /home/gabriel/.back_up_linux_pc.files_to_exclude.txt --log-file ~/rsync_logs/rsync.log / /media/gabriel/Linux_bak/Backups/rsync/Main_Dell_laptop`
+
+1. works perfectly as well, with logging to a log-file *and* with total progress via `--info=progress2`. Note that progress is *not* logged, which is nice so that it does _not_ clog up the logs!
+    See my modifications to this answer here: https://superuser.com/a/1002097/425838
+
+    `sudo rsync --dry-run --dry-run -rah -v --stats --relative --delete --delete-excluded --partial-dir=.rsync-partial --files-from /home/gabriel/.back_up_linux_pc.files_to_include.txt --exclude-from /home/gabriel/.back_up_linux_pc.files_to_exclude.txt --log-file ~/rsync_logs/rsync2.log --info=progress2 / /media/gabriel/Linux_bak/Backups/rsync/Main_Dell_laptop`
