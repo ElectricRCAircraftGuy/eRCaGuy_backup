@@ -1,0 +1,102 @@
+# This file is part of eRCaGuy_dotfiles: https://github.com/ElectricRCAircraftGuy/eRCaGuy_dotfiles
+
+# This file is used by "back_up_linux_pc.sh". See that file for installation instructions.
+
+# List of exclude patterns to NOT back up by rsync (one per line).
+#
+# See `man rsync` and search for "--exclude-from=FILE".
+# - "Blank lines in the  file  and  lines starting with ’;’ or ’#’ are ignored."
+# - NB: per the rsync man pages, sort this list to help rsync "to be more efficient".
+#
+# - SUPER IMPORTANT! - YOU MUST *NOT* HAVE ANY EXTRANEOUS SPACES **OR EVEN COMMENTS** AT THE END OF     <====== IMPORTANT! =======
+#   ANY INCLUDE OR EXCLUDE LINE OR ELSE I WILL REQUIRE THOSE CHARS TO BE PRESENT IN THE FILE/FOLDER
+#   MATCH IT IS LOOKING FOR, OR IT WILL FAIL TO MATCH!
+#   - If you violate this, you'll get `link_stat` errors such as this:
+#           ```
+#           rsync: link_stat "/var # some comment here" failed: No such file or directory (2)
+#           ```
+#
+# See also the "INCLUDE/EXCLUDE PATTERN RULES" section in `man rsync` for wildcard matching rules. <===
+# - "if the pattern ends with a / then it will only match a directory, not a regular file, symlink,
+#   or device."
+# - NB: putting `/*` at the end will exclude all contents withIN a folder, but not the (now empty)
+#   folder itself. This way, I can at least *see* that the a folder by this name exists, even if
+#   I'm not backing up the stuff *in* it!
+#
+# Exclude Examples:
+# - https://www.thegeekstuff.com/2011/01/rsync-exclude-files-and-folders/?utm_source=feedburner
+
+
+# ==================================================================================================
+# Dirs to NOT back up by default.
+# - Note that the "exclude_files" file will override any includes. For a file or folder to be
+#   backed up by rsync, it must be *in* the include list and *not* in the exclude list.
+# ==================================================================================================
+
+# REMINDER: NO COMMENTS NOR SPACES ARE ALLOWED AT THE END OF ANY INCLUDE OR EXCLUDE LINE!  <======== DON'T FAIL TO MATCH! ========
+
+
+# /home/*/.config/Slack/
+# # https://www.st.com/content/st_com/en/partner/partner-program/partnerpage/AC6.html
+# /home/*/Ac6/
+# /home/*/GS*/dev*/Python/Projects/eRCaGuy_PyTerm/logs/*
+# /home/*/GS*/dev*/Python/Projects/serial_terminal/logs/*
+# /home/*/GS*/dev*/Python/Projects/serial_terminal_barebones/logs/*
+# /home/*/GS*/dev*/STM32/dev_tools/STM32CubeMX*/STM32Cube_FW_F1_V1.6.0/*
+# /home/*/GS*/dev*/STM32/dev_tools/STM32CubeMX*/STM32Cube_FW_F2_V1.7.0/*
+# /home/*/GS*/dev*/STM32/dev_tools/STM32CubeMX*/STM32Cube_FW_F4_V1.19.0/*
+# /home/*/GS*/dev*/STM32/dev_tools/STM32CubeMX*/STM32Cube_FW_F7_V1.12.0/*
+# /home/*/GS*/dev*/temp/
+# /home/*/temp/
+# /home/*/VirtualBox VMs
+# /home/*/VirtualBox_Shared
+/home/*/.bazel/
+# Apparently ~/.cache is not even needed and will be re-auto-generated when needed so just delete it. See https://askubuntu.com/a/194215/327339
+/home/*/.cache/
+/home/*/.ccache/
+# no need to back up Chrome settings since they are 1) large (several GB) and 2) backed up under your username on the Google cloud
+/home/*/.config/google-chrome/
+# Trash folders; see: https://askubuntu.com/a/102106/327339
+/home/*/.local/share/Trash/
+/home/*/Downloads*/Install_Files*/Arduino/*
+/home/*/Downloads*/Install_Files*/Chrome/*
+/home/*/Downloads*/Install_Files*/Cura/*
+/home/*/Downloads*/Install_Files*/discord/*
+/home/*/Downloads*/Install_Files*/Eclipse/*
+/home/*/Downloads*/Install_Files*/FoxitReader/*
+/home/*/Downloads*/Install_Files*/gcc_source/*
+/home/*/Downloads*/Install_Files*/gpg/*
+/home/*/Downloads*/Install_Files*/Kdenlive/*
+/home/*/Downloads*/Install_Files*/Microsoft_Teams/*
+/home/*/Downloads*/Install_Files*/OpenShot/*
+/home/*/Downloads*/Install_Files*/poppler/*
+/home/*/Downloads*/Install_Files*/Shotcut/*
+/home/*/Downloads*/Install_Files*/VirtualBox/*
+/home/*/Downloads*/Install_Files*/Webex/*
+/home/*/Downloads*/Install_Files*/wxWidgets/*
+/home/*/Downloads*/Install_Files*/Zoom/*
+/home/*/Downloads*/OS_distros/*
+/home/*/Downloads*/OSs/*
+/home/*/GS*/dev*/AlfaWiFiAdapterSoftware/*
+/home/*/GS*/dev*/gcc/gcc/*
+/home/*/GS*/dev*/KiCad/Libraries/3-3D-packages/kicad-packages3D/*
+/home/*/GS*/dev*/KiCad/source/dependencies/*
+/home/*/GS*/dev*/KiCad/source/kicad/*
+/home/*/GS*/dev*/KiCad/source/kicad/build/*
+# This STM32CubeMX repo stuff can all be re-downloaded automatically from ST's website when using the application, so don't save
+/home/*/STM32Cube/Repository/*
+# This STM32CubeMX repo stuff can all be re-downloaded automatically from ST's website when using the application, so don't save
+/home/*/STM32CubeMX/*
+# ecryptfs private folder, since I'm already getting this stuff just by backing up the unencrypted home dir!
+/home/.ecryptfs/*/.Private/
+# Trash folders; see: https://askubuntu.com/a/102106/327339
+/root/.local/share/Trash/
+# No need for this stuff
+/usr/local/cuda-8.0/*
+# No need for this stuff
+/usr/local/lib/*
+/var/cache/
+# No need for this stuff
+/var/lib/*
+/var/run/
+/var/tmp/

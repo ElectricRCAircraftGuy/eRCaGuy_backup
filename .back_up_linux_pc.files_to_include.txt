@@ -1,0 +1,43 @@
+# This file is part of eRCaGuy_dotfiles: https://github.com/ElectricRCAircraftGuy/eRCaGuy_dotfiles
+
+# This file is used by "back_up_linux_pc.sh". See that file for installation instructions.
+
+# List of source files for rsync to copy
+#
+# See `man rsync` and search for "--include-from=FILE".
+# - "Blank lines in the  file  and  lines starting with ’;’ or ’#’ are ignored."
+# - NB: per the rsync man pages, sort this list to help rsync "to be more efficient".
+# - NB: adding the `/` before each folder here is NOT what makes these paths relative to the root
+#   dir. Rather, setting `SRC='/'` in the main script is what does that! Exclude paths are always
+#   relative to the source path specified in the rsync command! Having the `/` before a path here
+#   does nothing, and is purely for aesthetic reasons since in this case it really is relative to
+#   the root dir.
+#
+# - SUPER IMPORTANT! - YOU MUST *NOT* HAVE ANY EXTRANEOUS SPACES **OR EVEN COMMENTS** AT THE END OF     <====== IMPORTANT! =======
+#   ANY INCLUDE OR EXCLUDE LINE OR ELSE I WILL REQUIRE THOSE CHARS TO BE PRESENT IN THE FILE/FOLDER
+#   MATCH IT IS LOOKING FOR, OR IT WILL FAIL TO MATCH!
+#   - If you violate this, you'll get `link_stat` errors such as this:
+#           ```
+#           rsync: link_stat "/var # some comment here" failed: No such file or directory (2)
+#           ```
+#
+# See also the "INCLUDE/EXCLUDE PATTERN RULES" section in `man rsync` for wildcard matching rules. <===
+
+# ==================================================================================================
+# Root Ubuntu dirs to back up by default.
+# - Note that the "exclude_files" file will override any includes. For a file or folder to be
+#   backed up by rsync, it must be *in* the include list and *not* in the exclude list.
+# ==================================================================================================
+
+# REMINDER: NO COMMENTS NOR SPACES ARE ALLOWED AT THE END OF ANY INCLUDE OR EXCLUDE LINE!  <======== DON'T FAIL TO MATCH! ========
+
+
+/etc
+/home
+# /opt # Nah. Exclude it. It takes tons of memory and can re-download from the internet as it's publicly-available software.
+/root
+/srv
+/usr/local
+/usr/share/applications
+# Note: some system logs are in /var/log
+/var
