@@ -365,8 +365,10 @@ Now running rsync cmd:
     echo "$log_str" | tee -a $LOG_STDOUT
 
     log_str="\n===== RSYNC LOG START =====\n"
-    echo -e "$log_str" | tee -a $LOG_STDOUT
-    echo -e "$log_str" >> $LOG_STDERR
+
+    echo -e "\n===== RSYNC LOG START (stdout *and* stderr, logged by rsync's '--log-file' \
+argument) =====\n" | tee -a "$LOG_STDOUT"
+    echo -e "\n===== RSYNC LOG START (stderr only) =====\n" >> "$LOG_STDERR"
 
     # set -x  # debugging: see the actual cmds being run, including the main rsync cmd! <==== VERY USEFUL TO SEE THE WHOLE RSYNC CMD! ====
 
