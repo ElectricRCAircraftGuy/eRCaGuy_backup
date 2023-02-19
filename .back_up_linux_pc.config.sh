@@ -26,8 +26,15 @@ PRIV_SSH_KEY=""
 # LOG_FOLDER="$SCRIPT_DIRECTORY/logs"
 LOG_FOLDER="$HOME/rsync_logs"
 # Set log file names. No file extension is needed, as .txt will be automatically appended later.
-LOG_STDOUT="${LOG_FOLDER}/rsynclog_${DATE}__1_stdout"  # standard output
-LOG_STDERR="${LOG_FOLDER}/rsynclog_${DATE}__2_stderr"  # standard error
+# 1. This log file is where rsync logs via `--log-file path/to/logfile`. I have confirmed that
+# rsync logs **both** stdout and stderr type messages here. See my modifications to this answer,
+# and this project's readme, for details: https://superuser.com/a/1002097/425838
+# I will also manually log some extra information to this file before and after rsync runs.
+LOG_RSYNC="${LOG_FOLDER}/rsynclog_${DATE}__rsync"    # main rsync log file (both stdout and stderr)
+# 2. I will also manually `tee` (split) stderr messages to this log file so that you can quickly
+# see if and what any stderr messages were, since they are easy to get lost in the main log file.
+# I will also manually log some extra information to this file before and after rsync runs.
+LOG_STDERR="${LOG_FOLDER}/rsynclog_${DATE}__stderr"  # standard error
 
 # The user can override any rsync variables here which are set inside the `configure_variables`
 # function in the main script, if desired, since this function gets called near the end of that

@@ -146,6 +146,7 @@ write_options_array() {
     #     https://superuser.com/questions/1271882/convert-ntfs-partition-to-ext4-how-to-copy-the-data/1464264#comment2404831_1464264
     OPTIONS_ARRAY=(
         "${DRY_RUN_ARRAY[@]}"
+        "--log-file" "${LOG_FILE_ARRAY[@]}"
         "-rah"
         "${VERBOSE_ARRAY[@]}"
         "${STATS_ARRAY[@]}"
@@ -308,6 +309,9 @@ configure_variables() {
     # PARTIAL_ARRAY=()
     PARTIAL_ARRAY=("--partial-dir=.rsync-partial")
 
+    # LOG_FILE_ARRAY=()
+    LOG_FILE_ARRAY=("$LOG_STDOUT")
+
     set_user_overrides_for_rsync
     write_options_array
 }
@@ -354,9 +358,9 @@ at date & time: $DATE ($(date))
 
 Now running rsync cmd:
   simplified:
-        "'sudo rsync "${OPTIONS_ARRAY[@]}" "$SRC_FOLDER" "$DEST_FOLDER"'"
+        "'sudo rsync "${OPTIONS_ARRAY[@]}" "$SRC_FOLDER" "$DEST_FOLDER" 3>&1 1>&2 2>&3 | tee -a "$LOG_STDERR"'"
   expanded:
-        sudo rsync "${OPTIONS_ARRAY[@]}" "$SRC_FOLDER" "$DEST_FOLDER"
+        sudo rsync "${OPTIONS_ARRAY[@]}" "$SRC_FOLDER" "$DEST_FOLDER" 3>&1 1>&2 2>&3 | tee -a "$LOG_STDERR"
 "
     echo "$log_str" | tee -a $LOG_STDOUT
 
@@ -364,14 +368,18 @@ Now running rsync cmd:
     echo -e "$log_str" | tee -a $LOG_STDOUT
     echo -e "$log_str" >> $LOG_STDERR
 
-    # set -x  # debugging: see the actual cmds being run, including the main rsync cmd!
+    # set -x  # debugging: see the actual cmds being run, including the main rsync cmd! <==== VERY USEFUL TO SEE THE WHOLE RSYNC CMD! ====
 
+    # vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+    # WHEN UPDATING THE ACTUAL RSYNC CMDS HERE, UPDATE IT IN 4 PLACES! 2 ABOVE AND 2 BELOW!
+    #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     # Actually run the rsync cmd here!:
-    # NB: explicitly include `--dry-run` for safety in testing
-    sudo rsync --dry-run "${OPTIONS_ARRAY[@]}" "$SRC_FOLDER" "$DEST_FOLDER"  # for testing
-    # sudo rsync "${OPTIONS_ARRAY[@]}" "$SRC_FOLDER" "$DEST_FOLDER"  # the final version
+    # NB: explicitly include `--dry-run` for safety in testing, thereby forcing *all* runs to be
+    # dry-runs!
+    # sudo rsync --dry-run "${OPTIONS_ARRAY[@]}" "$SRC_FOLDER" "$DEST_FOLDER" 3>&1 1>&2 2>&3 | tee -a "$LOG_STDERR"  # for testing
+    sudo rsync "${OPTIONS_ARRAY[@]}" "$SRC_FOLDER" "$DEST_FOLDER" 3>&1 1>&2 2>&3 | tee -a "$LOG_STDERR"  # the final version
 
-    log_str="\n====== RSYNC LOG END`` ======\n"
+    log_str="\n====== RSYNC LOG END ======\n"
     echo -e "$log_str" | tee -a $LOG_STDOUT
     echo -e "$log_str" >> $LOG_STDERR
 } # do_rsync_backup
@@ -405,9 +413,10 @@ main() {
     echo "  DEST_FOLDER   = \"$DEST_FOLDER\""
     echo "  PRIV_SSH_KEY  = \"$PRIV_SSH_KEY\""
     echo "  LOG_FOLDER    = \"$LOG_FOLDER\""
-    echo "  LOG_STDOUT    = \"$LOG_STDOUT\""
+    echo "  LOG_RSYNC    = \"$LOG_RSYNC\""
     echo "  LOG_STDERR    = \"$LOG_STDERR\""
 
+    LOG_STDOUT="$LOG_RSYNC"
     mkdir -p "$LOG_FOLDER"
 
     # For ssh destinations only:
@@ -429,7 +438,13 @@ main() {
     # CAUTION: THIS CODE being correct is critical to avoiding data loss. Edit it with care.
     # See: https://stackoverflow.com/a/18546416/4561887
     is_dry_run="true"
-    read -p "Make this rsync backup session a dry run [Y/n]? " user_do_dry_run
+    read -p "
+NOTE: When doing a dry-run, look **especially** at the \"Number of deleted files\" in the
+summary at the end to ensure you are not going to accidentally delete something you don't
+mean to!
+IT IS RECOMMENDED TO DO A DRY-RUN FIRST BEFORE DOING THE ACTUAL BACKUP.
+Make this rsync backup session a dry run [Y/n]?" \
+        user_do_dry_run
     if [[ "$user_do_dry_run" == [Nn] || "$user_do_dry_run" == [Nn][Oo] ]]; then
     	# Confirm once again, giving the user one last chance to back out
         echo "
@@ -482,6 +497,8 @@ at the end of the rsync dry-run.
     do_rsync_backup
     print_elapsed_time
 
+    # TODO: REIMPLEMENT THIS LAST STEP AND ENSURE IT WORKS AGAIN!
+    #
     # # LASTLY, copy over (NON-destructively [ie: withOUT `--delete`]) the log files we just tee'ed now too
     # # BELOW CMD WORKS!
     # # sudo rsync -avh -e "ssh -i $HOME/.ssh/id_ed25519" --info=progress2 "./logs" "gabriel@192.168.0.2:/home/gabriel/temp/a"
