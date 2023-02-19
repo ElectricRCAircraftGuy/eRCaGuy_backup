@@ -113,6 +113,7 @@ rsync --version
 
 Newest on _TOP_:
 
+1. [ ] Use date-named log *dir* instead of *file*. Copy all 3 config files and even the backup script itself into this dir as part of the log files at the time of back up. This way, all script files and contents are present in case I need to look at the include or exclude list or track down something in particular in the script at the time of backup.
 1. [ ] Get my log files to show **all files**, instead of just _folders_, during dry runs. After a dry-run you can then modify the script to ask if the user would like to go straight into a real run. Use the dry-run logs of all files as the **means** of piping files to back up **to** the 16 or so rsync threads (described below).
 1. [ ] Figure out how to make the rsync `--dry-run` show files which are going to be deleted! 
     1. See my comment here: https://askubuntu.com/questions/706903/get-a-list-of-deleted-files-from-rsync#comment2544333_1304570
