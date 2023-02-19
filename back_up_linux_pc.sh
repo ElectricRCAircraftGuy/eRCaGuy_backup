@@ -147,6 +147,17 @@ write_options_array() {
     OPTIONS_ARRAY=(
         "${DRY_RUN_ARRAY[@]}"
         "--log-file" "${LOG_FILE_ARRAY[@]}"
+        # The default `--log-file-format`, if not specified, is `'%i %n%L'`. See `man rsync` here:
+        # https://linux.die.net/man/1/rsync; For log file format specifiers, see `man rsyncd.conf`
+        # in your terminal (best), or online here
+        # (fine): https://github.com/WayneD/rsync/blob/master/rsyncd.conf.5.md, or online here
+        # (not great--it shows left and right quotes as `lq` and `rq` instead of as quotes):
+        # https://linux.die.net/man/5/rsyncd.conf <-- look at the "log format" section.
+        # "--log-file-format" '%i %n%L'  # default
+        # "--log-file-format" '%i %l Bytes "%n"%L'  # add length of file in bytes **before** filename; put path in quotes
+        "--log-file-format" '%i "%n"%L  %l Bytes'  # add length of file in bytes **after** filename; put path in quotes
+        # "--log-file-format" '%i %f%L'
+        # "--log-file-format" '%i %f%L %l'
         "--itemize-changes"  # I'm experimenting with this; see: https://unix.stackexchange.com/a/203871/114401
         "-rah"
         "${VERBOSE_ARRAY[@]}"
@@ -183,7 +194,16 @@ configure_variables() {
     #   `=()`.
 
     # VERBOSE_ARRAY=()
+
+    # This level of verbosity shows only **folders** to be copied when doing a dry-run, for ex.!
+    # Dry-run log files are ~20 MB for 1 Million files, and full run log files are ~120 MB.
     VERBOSE_ARRAY=("-v")
+
+    # This level of verbosity shows also **filenames** to be copied when doing a dry-run, for ex.!
+    # It is **way** more verbose!
+    # Dry-run log files are hundreds of MB.
+    # - I need to investigate more. Doesn't seem to be quite what I want. Way too verbose.
+    # VERBOSE_ARRAY=("-vv")
 
     # PROGRESS_ARRAY=()
     # PROGRESS_ARRAY=("--progress")
