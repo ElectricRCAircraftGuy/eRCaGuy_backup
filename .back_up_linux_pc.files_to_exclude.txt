@@ -35,6 +35,8 @@
 
 # REMINDER: NO COMMENTS NOR SPACES ARE ALLOWED AT THE END OF ANY INCLUDE OR EXCLUDE LINE!  <======== DON'T FAIL TO MATCH! ========
 
+# Consider excluding external media (thumb drives, hard drives, remote drives, etc) mounted in your
+# home dir. Ex: at `~/mnt/`, `~/mount/`, `~/media/`, etc.
 
 # /home/*/.config/Slack/
 # # https://www.st.com/content/st_com/en/partner/partner-program/partnerpage/AC6.html
