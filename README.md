@@ -72,12 +72,15 @@ You can extract the main rsync run cmds using `set -x` in your script, just befo
 Here are some example commands I extracted, modified, and manually ran during testing:
 
 1. works
+
     `sudo rsync --dry-run --dry-run -rah -v --stats --relative --delete --delete-excluded --partial-dir=.rsync-partial --files-from /home/gabriel/.back_up_linux_pc.files_to_include.txt --exclude-from /home/gabriel/.back_up_linux_pc.files_to_exclude.txt / /media/gabriel/Linux_bak/Backups/rsync/Main_Dell_laptop`
 
 1. works great with logging!
+
     `sudo rsync --dry-run --dry-run -rah -v --stats --relative --delete --delete-excluded --partial-dir=.rsync-partial --files-from /home/gabriel/.back_up_linux_pc.files_to_include.txt --exclude-from /home/gabriel/.back_up_linux_pc.files_to_exclude.txt --log-file ~/rsync_logs/rsync.log / /media/gabriel/Linux_bak/Backups/rsync/Main_Dell_laptop`
 
 1. works perfectly as well, with logging to a log-file *and* with total progress via `--info=progress2`. Note that progress is *not* logged, which is nice so that it does _not_ clog up the logs!
+
     See my modifications to this answer here: https://superuser.com/a/1002097/425838
 
     `sudo rsync --dry-run --dry-run -rah -v --stats --relative --delete --delete-excluded --partial-dir=.rsync-partial --files-from /home/gabriel/.back_up_linux_pc.files_to_include.txt --exclude-from /home/gabriel/.back_up_linux_pc.files_to_exclude.txt --log-file ~/rsync_logs/rsync2.log --info=progress2 / /media/gabriel/Linux_bak/Backups/rsync/Main_Dell_laptop`
