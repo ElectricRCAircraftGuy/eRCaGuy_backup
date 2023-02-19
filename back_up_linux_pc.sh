@@ -147,6 +147,7 @@ write_options_array() {
     OPTIONS_ARRAY=(
         "${DRY_RUN_ARRAY[@]}"
         "--log-file" "${LOG_FILE_ARRAY[@]}"
+        "--itemize-changes"  # I'm experimenting with this; see: https://unix.stackexchange.com/a/203871/114401
         "-rah"
         "${VERBOSE_ARRAY[@]}"
         "${STATS_ARRAY[@]}"
@@ -186,7 +187,11 @@ configure_variables() {
 
     # PROGRESS_ARRAY=()
     # PROGRESS_ARRAY=("--progress")
-    PROGRESS_ARRAY=("--info=progress2") # DEFAULT; Use this option to see the global progress
+    # `del` is **supposed to** [but doesn't yet :(; see my TODOs in the README] show deleted files
+    # in the logs during dry-runs too!; see: https://askubuntu.com/a/1304570/327339
+    # PROGRESS_ARRAY=("--info=del,progress2")
+    PROGRESS_ARRAY=("--progress" "--info=del,progress2")
+    # PROGRESS_ARRAY=("--info=progress2") # DEFAULT; Use this option to see the global progress
                                         # percentage after each file is copied
 
     # From `man rsync`:
