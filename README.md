@@ -2,6 +2,9 @@
 Easily back up your files on any Linux system via an rsync wrapper, dry-runs, include &amp; exclude files, and nice logging.
 
 
+## Status: done and works!
+
+
 ## Usage
 
 TODO; start by looking at the comments at the top of `back_up_linux_pc.sh`.
