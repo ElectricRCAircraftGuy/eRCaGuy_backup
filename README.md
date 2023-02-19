@@ -10,6 +10,52 @@ Easily back up your files on any Linux system via an rsync wrapper, dry-runs, in
 TODO; start by looking at the comments at the top of `back_up_linux_pc.sh`.
 
 
+## Build and install the latest version of rsync
+
+...to ensure you have the latest updates & bug fixes.
+
+See the official rsync installation instructions on the official rsync repo by the current primary maintainer on GitHub here: https://github.com/WayneD/rsync/blob/master/INSTALL.md
+
+_Tested on Ubuntu 20.04 on 19 Feb. 2023._
+
+```bash
+# install dependencies
+# - Use `aptitude` to fix any which fail to install.
+sudo apt update
+sudo apt install -y gcc g++ gawk autoconf automake python3-cmarkgfm
+sudo apt install -y acl libacl1-dev
+sudo apt install -y attr libattr1-dev
+sudo apt install -y libxxhash-dev
+sudo aptitude install libzstd-dev  # choose the correct options to get it fixed and installed
+sudo apt install -y libzstd-dev
+sudo aptitude install liblz4-dev # choose N, Y, Y
+sudo apt install -y liblz4-dev
+sudo apt install -y libssl-dev
+
+# check your current version
+rsync --version
+
+# go here and find the latest release: https://download.samba.org/pub/rsync/src/
+# OR here, on the official GitHub release page: https://github.com/WayneD/rsync/tags
+
+URL="https://download.samba.org/pub/rsync/src/rsync-3.2.7.tar.gz"
+# download it
+wget "$URL"
+# extract it
+tar -xf rsync-3.2.7.tar.gz
+
+# build and install it
+cd rsync-3.2.7
+time ./configure  # Ensure it says "rsync 3.2.7 configuration successful" at the end
+time make
+sudo make install
+. ~/.profile  # re-source bash config files
+
+# check new version
+rsync --version
+```
+
+
 ## `rsync` notes
 
 1. `tee` doesn't seem to be able to log to a remote ssh host, so log locally instead, then manually rsync the log over when done.
