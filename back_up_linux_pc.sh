@@ -16,18 +16,18 @@
 # system over the network, *or* you can back up to a local USB drive.
 #
 #
-# STATUS: wip
+# STATUS: works!
 #
 #
 # INSTALLATION INSTRUCTIONS:
 # 1. Copy all config files to your home dir.
 #
 #       # (recommended for most people) copy the files
-#       cp .back_up_linux_pc.config.sh .back_up_linux_pc.files_to_exclude.txt .back_up_linux_pc.files_to_include.txt ~
+#       cp -i .back_up_linux_pc.config.sh .back_up_linux_pc.files_to_exclude.rsync .back_up_linux_pc.files_to_include.rsync ~
 #
 #       # (what I do while developing this code) symlink these files if you want to use exactly
 #       # my settings in this repo.
-#       ln -si "${PWD}/.back_up_linux_pc.config.sh" "${PWD}/.back_up_linux_pc.files_to_exclude.txt" "${PWD}/.back_up_linux_pc.files_to_include.txt" ~
+#       ln -si "${PWD}/.back_up_linux_pc.config.sh" "${PWD}/.back_up_linux_pc.files_to_exclude.rsync" "${PWD}/.back_up_linux_pc.files_to_include.rsync" ~
 #
 # 2. Manually edit each of the above config files in your home dir, according to your needs.
 # 3. Symlink this executable into your PATH. Ex:
@@ -184,9 +184,9 @@ write_options_array() {
 configure_variables() {
     SRC_FOLDER="/" # Make all src files be relative to the *root* directory
     # Files to include (back up)
-    INCLUDE_FILES="$HOME/.back_up_linux_pc.files_to_include.txt"
+    INCLUDE_FILES="$HOME/.back_up_linux_pc.files_to_include.rsync"
     # File containing exclude patterns (one per line)
-    EXCLUDE_FILES="$HOME/.back_up_linux_pc.files_to_exclude.txt"
+    EXCLUDE_FILES="$HOME/.back_up_linux_pc.files_to_exclude.rsync"
 
     # Set our default `rsync` options for this script.
     # - See `man rsync` for explanations of each.
@@ -352,8 +352,8 @@ do_rsync_backup() {
     #
     #       rsync --dry-run --dry-run -rah -v --stats --relative --info=progress2 --delete --delete-excluded \
     #       -e 'ssh -i  -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile=/dev/null' \
-    #       --partial-dir=.rsync-partial --files-from /home/gabriel/.back_up_linux_pc.files_to_include.txt \
-    #       --exclude-from /home/gabriel/.back_up_linux_pc.files_to_exclude.txt \
+    #       --partial-dir=.rsync-partial --files-from /home/gabriel/.back_up_linux_pc.files_to_include.rsync \
+    #       --exclude-from /home/gabriel/.back_up_linux_pc.files_to_exclude.rsync \
     #       / /media/gabriel/Linux_bak/Backups/rsync/Main_Dell_laptop
     #
 
@@ -370,7 +370,7 @@ do_rsync_backup() {
     #       rsync: opendir "/etc/polkit-1/localauthority" failed: Permission denied (13)
     #       rsync: opendir "/etc/ssl/private" failed: Permission denied (13)
 
-    # Meaning of `3>&1 1>&2 2>&3`: it swaps stderr and stdout, allowing piping stderr to `tee` too.
+    # Meaning of `3>&1 1>&2 2>&3`: it swaps stderr and stdout, allowing piping stderr to `tee` too. <===
     # See: https://unix.stackexchange.com/a/42776/114401
 
     # # cmd withOUT variable substitution performed
@@ -387,9 +387,11 @@ at date & time: $DATE ($(date))
 
 Now running rsync cmd:
   simplified:
-        "'sudo rsync "${OPTIONS_ARRAY[@]}" "$SRC_FOLDER" "$DEST_FOLDER" 3>&1 1>&2 2>&3 | tee -a "$LOG_STDERR"'"
+        #                                                                 v eliminate lines which begin with a space, which are the % progress lines
+        #                                                                 v                           log stdout        swap stdout and stderr     log stderr
+        "'sudo rsync "${OPTIONS_ARRAY[@]}" "$SRC_FOLDER" "$DEST_FOLDER" | grep -v -E "^[ ]{1,}.*$" | tee -a "$LOG_STDOUT" 3>&1 1>&2 2>&3 | tee -a "$LOG_STDERR"'"
   expanded:
-        sudo rsync "${OPTIONS_ARRAY[@]}" "$SRC_FOLDER" "$DEST_FOLDER" 3>&1 1>&2 2>&3 | tee -a "$LOG_STDERR"
+        sudo rsync \"${OPTIONS_ARRAY[@]}\" \"$SRC_FOLDER\" \"$DEST_FOLDER\" | grep -v -E \"^[ ]{1,}.*$\" | tee -a \"$LOG_STDOUT\" 3>&1 1>&2 2>&3 | tee -a \"$LOG_STDERR\"
 "
     echo "$log_str" | tee -a "$LOG_STDOUT"
 
@@ -406,8 +408,8 @@ Now running rsync cmd:
     # Actually run the rsync cmd here!:
     # NB: explicitly include `--dry-run` for safety in testing, thereby forcing *all* runs to be
     # dry-runs!
-    # sudo rsync --dry-run "${OPTIONS_ARRAY[@]}" "$SRC_FOLDER" "$DEST_FOLDER" 3>&1 1>&2 2>&3 | tee -a "$LOG_STDERR"  # for testing
-    sudo rsync "${OPTIONS_ARRAY[@]}" "$SRC_FOLDER" "$DEST_FOLDER" 3>&1 1>&2 2>&3 | tee -a "$LOG_STDERR"  # the final version
+    # sudo rsync --dry-run "${OPTIONS_ARRAY[@]}" "$SRC_FOLDER" "$DEST_FOLDER" | grep -v -E "^[ ]{1,}.*$" | tee -a "$LOG_STDOUT" 3>&1 1>&2 2>&3 | tee -a "$LOG_STDERR"  # for testing
+    sudo rsync "${OPTIONS_ARRAY[@]}" "$SRC_FOLDER" "$DEST_FOLDER" | grep -v -E "^[ ]{1,}.*$" | tee -a "$LOG_STDOUT" 3>&1 1>&2 2>&3 | tee -a "$LOG_STDERR"  # the final version
 
     log_str="\n====== RSYNC LOG END ======\n"
     echo -e "$log_str" | tee -a "$LOG_STDOUT" "$LOG_STDERR"
@@ -435,8 +437,8 @@ copy_source_code() {
     cp "$FULL_PATH_TO_SCRIPT" "$LOG_SUBFOLDER/src/"
 
     cp ~/.back_up_linux_pc.config.sh "$LOG_SUBFOLDER/src/"
-    cp ~/.back_up_linux_pc.files_to_exclude.txt "$LOG_SUBFOLDER/src/"
-    cp ~/.back_up_linux_pc.files_to_include.txt "$LOG_SUBFOLDER/src/"
+    cp ~/.back_up_linux_pc.files_to_exclude.rsync "$LOG_SUBFOLDER/src/"
+    cp ~/.back_up_linux_pc.files_to_include.rsync "$LOG_SUBFOLDER/src/"
 }
 
 main() {
@@ -446,8 +448,8 @@ main() {
     echo "Running $SCRIPT_NAME"
 
     check_for_file ~/.back_up_linux_pc.config.sh
-    check_for_file ~/.back_up_linux_pc.files_to_exclude.txt
-    check_for_file ~/.back_up_linux_pc.files_to_include.txt
+    check_for_file ~/.back_up_linux_pc.files_to_exclude.rsync
+    check_for_file ~/.back_up_linux_pc.files_to_include.rsync
 
     # For ssh destinations only:
     # If the user specified a `PRIV_SSH_KEY` path...
