@@ -410,8 +410,7 @@ Now running rsync cmd:
     sudo rsync "${OPTIONS_ARRAY[@]}" "$SRC_FOLDER" "$DEST_FOLDER" 3>&1 1>&2 2>&3 | tee -a "$LOG_STDERR"  # the final version
 
     log_str="\n====== RSYNC LOG END ======\n"
-    echo -e "$log_str" | tee -a "$LOG_STDOUT"
-    echo -e "$log_str" >> "$LOG_STDERR"
+    echo -e "$log_str" | tee -a "$LOG_STDOUT" "$LOG_STDERR"
 } # do_rsync_backup
 
 print_elapsed_time() {
@@ -534,11 +533,9 @@ User settings:
     echo "$user_settings_str" >> "$LOG_STDOUT"
     echo "$user_settings_str" >> "$LOG_STDERR"
 
-    echo -e "Beginning of \"$FULL_PATH_TO_SCRIPT\"" | tee -a "$LOG_STDOUT"
-    echo -e "Beginning of \"$FULL_PATH_TO_SCRIPT\"" >> "$LOG_STDERR"
+    echo -e "Beginning of \"$FULL_PATH_TO_SCRIPT\"" | tee -a "$LOG_STDOUT" "$LOG_STDERR"
 
-	echo -e "$dry_run_str" | tee -a "$LOG_STDOUT"
-    echo -e "$dry_run_str" >> "$LOG_STDERR"
+	echo -e "$dry_run_str" | tee -a "$LOG_STDOUT" "$LOG_STDERR"
 
     configure_variables
     do_rsync_backup
