@@ -391,7 +391,7 @@ Now running rsync cmd:
   expanded:
         sudo rsync "${OPTIONS_ARRAY[@]}" "$SRC_FOLDER" "$DEST_FOLDER" 3>&1 1>&2 2>&3 | tee -a "$LOG_STDERR"
 "
-    echo "$log_str" | tee -a $LOG_STDOUT
+    echo "$log_str" | tee -a "$LOG_STDOUT"
 
     log_str="\n===== RSYNC LOG START =====\n"
 
@@ -410,8 +410,8 @@ Now running rsync cmd:
     sudo rsync "${OPTIONS_ARRAY[@]}" "$SRC_FOLDER" "$DEST_FOLDER" 3>&1 1>&2 2>&3 | tee -a "$LOG_STDERR"  # the final version
 
     log_str="\n====== RSYNC LOG END ======\n"
-    echo -e "$log_str" | tee -a $LOG_STDOUT
-    echo -e "$log_str" >> $LOG_STDERR
+    echo -e "$log_str" | tee -a "$LOG_STDOUT"
+    echo -e "$log_str" >> "$LOG_STDERR"
 } # do_rsync_backup
 
 print_elapsed_time() {
@@ -424,7 +424,7 @@ print_elapsed_time() {
 Total script run-time = $duration_sec sec
                       = $duration_min min
                       = $duration_hrs hrs"
-    echo -e "\n$elapsed_time_str" | tee -a $LOG_STDOUT $LOG_STDERR
+    echo -e "\n$elapsed_time_str" | tee -a "$LOG_STDOUT" "$LOG_STDERR"
 }
 
 # Copy this script's source code and the user's custom config files to the log subfolder. This way,
@@ -507,16 +507,17 @@ at the end of the rsync dry-run.
 
     # Source the main config file
     . ~/.back_up_linux_pc.config.sh
-    echo ""
-    echo "User settings:"
-    echo "  DEST_FOLDER     = \"$DEST_FOLDER\""
-    echo "  PRIV_SSH_KEY    = \"$PRIV_SSH_KEY\""
-    echo "  LOG_FOLDER      = \"$LOG_FOLDER\""
-    echo "  LOG_SUBFOLDER   = \"$LOG_SUBFOLDER\""
-    echo "  LOG_STDOUT      = \"$LOG_STDOUT\""
-    echo "  LOG_STDERR      = \"$LOG_STDERR\""
-    echo "  LOG_RSYNC       = \"$LOG_RSYNC\""
-    echo ""
+    user_settings_str="
+User settings:
+  DEST_FOLDER     = \"$DEST_FOLDER\"
+  PRIV_SSH_KEY    = \"$PRIV_SSH_KEY\"
+  LOG_FOLDER      = \"$LOG_FOLDER\"
+  LOG_SUBFOLDER   = \"$LOG_SUBFOLDER\"
+  LOG_STDOUT      = \"$LOG_STDOUT\"
+  LOG_STDERR      = \"$LOG_STDERR\"
+  LOG_RSYNC       = \"$LOG_RSYNC\"
+"
+    echo "$user_settings_str"
 
     # See: https://unix.stackexchange.com/a/293941/114401
     read -p "About to begin. Press Enter to continue, or Ctrl + C to abort. "
@@ -527,11 +528,14 @@ at the end of the rsync dry-run.
     mkdir -p "$LOG_SUBFOLDER"
     copy_source_code
 
-    echo -e "stdout:" >> $LOG_STDOUT
-    echo -e "stderr:" >> $LOG_STDERR
+    echo -e "stdout:" >> "$LOG_STDOUT"
+    echo -e "stderr:" >> "$LOG_STDERR"
 
-    echo -e "\nBeginning of \"$FULL_PATH_TO_SCRIPT\"" | tee -a $LOG_STDOUT
-    echo -e "\nBeginning of \"$FULL_PATH_TO_SCRIPT\"" >> $LOG_STDERR
+    echo "$user_settings_str" >> "$LOG_STDOUT"
+    echo "$user_settings_str" >> "$LOG_STDERR"
+
+    echo -e "Beginning of \"$FULL_PATH_TO_SCRIPT\"" | tee -a "$LOG_STDOUT"
+    echo -e "Beginning of \"$FULL_PATH_TO_SCRIPT\"" >> "$LOG_STDERR"
 
 	echo -e "$dry_run_str" | tee -a "$LOG_STDOUT"
     echo -e "$dry_run_str" >> "$LOG_STDERR"
