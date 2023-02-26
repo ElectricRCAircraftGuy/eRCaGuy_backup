@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 # This file is part of eRCaGuy_dotfiles: https://github.com/ElectricRCAircraftGuy/eRCaGuy_dotfiles
+# and eRCaGuy_backup: https://github.com/ElectricRCAircraftGuy/eRCaGuy_backup
 
 # Gabriel Staples
 # Started: July 2019
@@ -146,7 +147,7 @@ write_options_array() {
     #     https://superuser.com/questions/1271882/convert-ntfs-partition-to-ext4-how-to-copy-the-data/1464264#comment2404831_1464264
     OPTIONS_ARRAY=(
         "${DRY_RUN_ARRAY[@]}"
-        "--log-file" "${LOG_FILE_ARRAY[@]}"
+        "${LOG_FILE_ARRAY[@]}"
         # The default `--log-file-format`, if not specified, is `'%i %n%L'`. See `man rsync` here:
         # https://linux.die.net/man/1/rsync; For log file format specifiers, see `man rsyncd.conf`
         # in your terminal (best), or online here
@@ -334,8 +335,11 @@ configure_variables() {
     # PARTIAL_ARRAY=()
     PARTIAL_ARRAY=("--partial-dir=.rsync-partial")
 
-    # LOG_FILE_ARRAY=()
-    LOG_FILE_ARRAY=("$LOG_STDOUT")
+    # LOG_FILE_ARRAY=()  # disable the rsync log file
+    LOG_FILE_ARRAY=("--log-file" "$LOG_RSYNC")
+    if [ "$LOG_RSYNC" = "/dev/null" ]; then
+        LOG_FILE_ARRAY=()
+    fi
 
     set_user_overrides_for_rsync
     write_options_array
@@ -391,8 +395,7 @@ Now running rsync cmd:
 
     log_str="\n===== RSYNC LOG START =====\n"
 
-    echo -e "\n===== RSYNC LOG START (stdout *and* stderr, logged by rsync's '--log-file' \
-argument) =====\n" | tee -a "$LOG_STDOUT"
+    echo -e "\n===== RSYNC LOG START =====\n" | tee -a "$LOG_STDOUT"
     echo -e "\n===== RSYNC LOG START (stderr only) =====\n" >> "$LOG_STDERR"
 
     # set -x  # debugging: see the actual cmds being run, including the main rsync cmd! <==== VERY USEFUL TO SEE THE WHOLE RSYNC CMD! ====
@@ -424,6 +427,19 @@ Total script run-time = $duration_sec sec
     echo -e "\n$elapsed_time_str" | tee -a $LOG_STDOUT $LOG_STDERR
 }
 
+# Copy this script's source code and the user's custom config files to the log subfolder. This way,
+# all script files and contents are present in case one needs to look at the include or exclude list
+# or track down something in particular in the script which occurred at the time of backup.
+copy_source_code() {
+    mkdir -p "$LOG_SUBFOLDER/src"
+
+    cp "$FULL_PATH_TO_SCRIPT" "$LOG_SUBFOLDER/src/"
+
+    cp ~/.back_up_linux_pc.config.sh "$LOG_SUBFOLDER/src/"
+    cp ~/.back_up_linux_pc.files_to_exclude.txt "$LOG_SUBFOLDER/src/"
+    cp ~/.back_up_linux_pc.files_to_include.txt "$LOG_SUBFOLDER/src/"
+}
+
 main() {
 	start=$SECONDS
     export DATE=$(date +%Y%m%d-%H%Mhrs%Ssec)
@@ -433,18 +449,6 @@ main() {
     check_for_file ~/.back_up_linux_pc.config.sh
     check_for_file ~/.back_up_linux_pc.files_to_exclude.txt
     check_for_file ~/.back_up_linux_pc.files_to_include.txt
-
-    # Source the main config file
-    . ~/.back_up_linux_pc.config.sh
-    echo "User settings:"
-    echo "  DEST_FOLDER   = \"$DEST_FOLDER\""
-    echo "  PRIV_SSH_KEY  = \"$PRIV_SSH_KEY\""
-    echo "  LOG_FOLDER    = \"$LOG_FOLDER\""
-    echo "  LOG_RSYNC    = \"$LOG_RSYNC\""
-    echo "  LOG_STDERR    = \"$LOG_STDERR\""
-
-    LOG_STDOUT="$LOG_RSYNC"
-    mkdir -p "$LOG_FOLDER"
 
     # For ssh destinations only:
     # If the user specified a `PRIV_SSH_KEY` path...
@@ -470,7 +474,7 @@ NOTE: When doing a dry-run, look **especially** at the \"Number of deleted files
 summary at the end to ensure you are not going to accidentally delete something you don't
 mean to!
 IT IS RECOMMENDED TO DO A DRY-RUN FIRST BEFORE DOING THE ACTUAL BACKUP.
-Make this rsync backup session a dry run [Y/n]?" \
+Make this rsync backup session a dry run [Y/n]? " \
         user_do_dry_run
     if [[ "$user_do_dry_run" == [Nn] || "$user_do_dry_run" == [Nn][Oo] ]]; then
     	# Confirm once again, giving the user one last chance to back out
@@ -490,26 +494,38 @@ at the end of the rsync dry-run.
 
     # echo "is_dry_run = \"$is_dry_run\""  # debugging
 
-    # Set the `DRY_RUN_ARRAY` argument to rsync, and append "_dryrun" to the end of the file name if this
-    # is a dry run
+    DRYRUN_SUFFIX=""
     if [ "$is_dry_run" = "true" ]; then
         # CAUTION: DON'T FORGET THIS PART OR YOU RISK LOSING THE USER'S DATA!
         DRY_RUN_ARRAY=("--dry-run")
-
-        LOG_STDOUT="${LOG_STDOUT}_dryrun.txt"
-    	LOG_STDERR="${LOG_STDERR}_dryrun.txt"
-
+        DRYRUN_SUFFIX="_dryrun"
         dry_run_str="This is a DRY RUN. \${DRY_RUN_ARRAY[@]}=\"${DRY_RUN_ARRAY[@]}\""
     else
         DRY_RUN_ARRAY=()  # empty array
-
-        LOG_STDOUT="${LOG_STDOUT}.txt"
-    	LOG_STDERR="${LOG_STDERR}.txt"
-
         dry_run_str="WARNING: This is ***NOT a dry run***. \${DRY_RUN_ARRAY[@]}=\"${DRY_RUN_ARRAY[@]}\""
     fi
 
+    # Source the main config file
+    . ~/.back_up_linux_pc.config.sh
+    echo ""
+    echo "User settings:"
+    echo "  DEST_FOLDER     = \"$DEST_FOLDER\""
+    echo "  PRIV_SSH_KEY    = \"$PRIV_SSH_KEY\""
+    echo "  LOG_FOLDER      = \"$LOG_FOLDER\""
+    echo "  LOG_SUBFOLDER   = \"$LOG_SUBFOLDER\""
+    echo "  LOG_STDOUT      = \"$LOG_STDOUT\""
+    echo "  LOG_STDERR      = \"$LOG_STDERR\""
+    echo "  LOG_RSYNC       = \"$LOG_RSYNC\""
+    echo ""
+
+    # See: https://unix.stackexchange.com/a/293941/114401
+    read -p "About to begin. Press Enter to continue, or Ctrl + C to abort. "
+
     # Create the log files and write to them for the first time
+
+    # LOG_STDOUT="$LOG_RSYNC"
+    mkdir -p "$LOG_SUBFOLDER"
+    copy_source_code
 
     echo -e "stdout:" >> $LOG_STDOUT
     echo -e "stderr:" >> $LOG_STDERR

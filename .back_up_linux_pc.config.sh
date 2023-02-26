@@ -19,22 +19,41 @@ DEST_FOLDER="/media/gabriel/Linux_bak/Backups/rsync/Main_Dell_laptop"
 # PRIV_SSH_KEY="$HOME/.ssh/id_ed25519"
 PRIV_SSH_KEY=""
 
-# Set the log folder path and log file paths.
+# Set the **absolute** log folder and log file paths.
 
-# Use this to discard the log data and NOT create log files this run.
-# LOG_FOLDER="/dev/null"
 # LOG_FOLDER="$SCRIPT_DIRECTORY/logs"
 LOG_FOLDER="$HOME/rsync_logs"
-# Set log file names. No file extension is needed, as .txt will be automatically appended later.
-# 1. This log file is where rsync logs via `--log-file path/to/logfile`. I have confirmed that
-# rsync logs **both** stdout and stderr type messages here. See my modifications to this answer,
-# and this project's readme, for details: https://superuser.com/a/1002097/425838
-# I will also manually log some extra information to this file before and after rsync runs.
-LOG_RSYNC="${LOG_FOLDER}/rsynclog_${DATE}__rsync"    # main rsync log file (both stdout and stderr)
-# 2. I will also manually `tee` (split) stderr messages to this log file so that you can quickly
-# see if and what any stderr messages were, since they are easy to get lost in the main log file.
-# I will also manually log some extra information to this file before and after rsync runs.
-LOG_STDERR="${LOG_FOLDER}/rsynclog_${DATE}__stderr"  # standard error
+
+# Set the log subfolder created each run. The log subfolder should be placed within the main log
+# folder.
+LOG_SUBFOLDER="${LOG_FOLDER}/${DATE}${DRYRUN_SUFFIX}"
+
+# Set the **absolute** log file names.
+
+# 1. manual stdout log
+# - We manually log this because rsync unfortunately does *not* log "deleting" type messages
+#   (which indicate which files are going to be deleted) to its `--log-file`-specified logs. Those
+#   messages *do* go to stdout, however, so we will manually capture stdout.
+# LOG_STDOUT="/dev/null"  # Use this to discard the log data and NOT create this log file this run
+LOG_STDOUT="$LOG_SUBFOLDER/stdout.txt"
+
+# 2. manual stderr log
+# - We will also manually `tee` (split) stderr messages to this log file so that you can quickly see
+#   if and what any stderr messages were, since they are easy to get lost in the other log files.
+# - I will also manually log some extra information to this file before and after rsync runs.
+# LOG_STDERR="/dev/null"  # Use this to discard the log data and NOT create this log file this run
+LOG_STDERR="$LOG_SUBFOLDER/stderr.txt"
+
+# 3. rsync logfile
+# - This log file is where rsync logs via `--log-file path/to/logfile`. I have confirmed that rsync
+#   logs **both** stdout and stderr type messages here, but unfortunately does **not**
+#   log "deleting" type messages which indicate which files are going to be deleted. So, we must
+#   manually log stdout too in order to capture that.
+# - See also my modifications to this answer, and this project's readme, for additional details:
+#   https://superuser.com/a/1002097/425838
+# LOG_RSYNC="/dev/null"  # Use this to discard the log data and NOT create this log file this run
+LOG_RSYNC="$LOG_SUBFOLDER/rsync_logfile.txt"
+
 
 # The user can override any rsync variables here which are set inside the `configure_variables`
 # function in the main script, if desired, since this function gets called near the end of that
