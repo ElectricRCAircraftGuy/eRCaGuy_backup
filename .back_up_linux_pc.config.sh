@@ -54,6 +54,9 @@ LOG_STDERR="$LOG_SUBFOLDER/stderr.txt"
 # LOG_RSYNC="/dev/null"  # Use this to discard the log data and NOT create this log file this run
 LOG_RSYNC="$LOG_SUBFOLDER/rsync_logfile.txt"
 
+# 4. list of all files that are going to be (for a dry run) or were (for an actual backup) deleted
+LOG_DELETED="$LOG_SUBFOLDER/deleted.txt"
+
 
 # The user can override any rsync variables here which are set inside the `configure_variables`
 # function in the main script, if desired, since this function gets called near the end of that

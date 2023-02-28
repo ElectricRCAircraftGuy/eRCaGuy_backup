@@ -454,8 +454,31 @@ copy_source_code() {
 }
 
 log_deleted_files() {
-    ####### make the deleted.txt file path a user parameter, probably, in the config file
-    grep -E '^\*deleting' "$LOG_STDOUT" > "$LOG_SUBFOLDER/deleted.txt" ########## echo to user that files being deleted are here!
+    # create the file containing the list of deleted files
+    grep -E '^\*deleting' "$LOG_STDOUT" > "$LOG_DELETED"
+
+    # provide output to the user
+
+    if [ "$is_dry_run" = "true" ]; then
+        notice_str="
+A list of files which are going to be deleted has been stored in the \"LOG_DELETED\" file at
+\"$LOG_DELETED\".
+Please **check this file carefully** and ensure this script is not going to delete anything you
+don't want it to! You can also search the \"LOG_STDOUT\" stdout log at
+\"$LOG_STDOUT\"
+for the string \"*deleting\" to see all of these same files.
+"
+    else
+        notice_str="
+A list of files which were just deleted has been stored in the \"LOG_DELETED\" file at
+\"$LOG_DELETED\".
+You can also search the \"LOG_STDOUT\" stdout log at
+\"$LOG_STDOUT\"
+for the string \"*deleting\" to see all of these same files.
+"
+    fi
+
+    echo "$notice_str" | tee -a "$LOG_STDOUT"
 }
 
 main() {
@@ -490,11 +513,14 @@ main() {
     read -p "
 NOTE: When doing a dry-run, look **especially** at the \"Number of deleted files\" in the
 summary at the end to ensure you are not going to accidentally delete something you don't
-mean to!
+mean to! Also check the \"LOG_DELETED\" log for a list of deleted files, and search the
+\"LOG_STDOUT\" log for the string \"*deleting\" for those deleted files.
+
 IT IS RECOMMENDED TO DO A DRY-RUN FIRST BEFORE DOING THE ACTUAL BACKUP.
 Make this rsync backup session a dry run [Y/n]? " \
         user_do_dry_run
     if [[ "$user_do_dry_run" == [Nn] || "$user_do_dry_run" == [Nn][Oo] ]]; then
+        echo "'No' was selected."
     	# Confirm once again, giving the user one last chance to back out
         echo "
 WARNING: You are about to do a REAL run instead of a dry run. Improper rsync configuration can cause
@@ -506,11 +532,16 @@ at the end of the rsync dry-run.
         read -p "Are you sure you'd like to continue with the real rsync run [y/N]?
 (Use Enter or N to cancel & do a dry-run instead). " user_continue
     	if [[ "$user_continue" = [Yy] || "$user_continue" == [Yy][Ee][Ss] ]]; then
+            echo "'Yes' was selected."
             is_dry_run="false"
-    	fi
+    	else
+            echo "'No' was selected."
+        fi
+    else
+        echo "'Yes' was selected."
     fi
 
-    # echo "is_dry_run = \"$is_dry_run\""  # debugging
+    echo "is_dry_run = \"$is_dry_run\""
 
     DRYRUN_SUFFIX=""
     if [ "$is_dry_run" = "true" ]; then
@@ -534,6 +565,7 @@ User settings:
   LOG_STDOUT      = \"$LOG_STDOUT\"
   LOG_STDERR      = \"$LOG_STDERR\"
   LOG_RSYNC       = \"$LOG_RSYNC\"
+  LOG_DELETED     = \"$LOG_DELETED\"
 "
     echo "$user_settings_str"
 
