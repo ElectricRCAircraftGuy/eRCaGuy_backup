@@ -386,12 +386,15 @@ in directory \"$PWD\"
 at date & time: $DATE ($(date))
 
 Now running rsync cmd:
+
   simplified:
         #                                                                 v eliminate lines which begin with a space, which are the % progress lines
-        #                                                                 v                           log stdout        swap stdout and stderr     log stderr
-        "'sudo rsync "${OPTIONS_ARRAY[@]}" "$SRC_FOLDER" "$DEST_FOLDER" | grep -v -E "^[ ]{1,}.*$" | tee -a "$LOG_STDOUT" 3>&1 1>&2 2>&3 | tee -a "$LOG_STDERR"'"
+        #                                                                 v                             log stdout        swap stdout and stderr     log stderr
+
+        "'sudo rsync "${OPTIONS_ARRAY[@]}" "$SRC_FOLDER" "$DEST_FOLDER" | grep -v -E '"'"'^\s{1,}.*$'"'"' | tee -a "$LOG_STDOUT" 3>&1 1>&2 2>&3 | tee -a "$LOG_STDERR"'"
+
   expanded:
-        sudo rsync \"${OPTIONS_ARRAY[@]}\" \"$SRC_FOLDER\" \"$DEST_FOLDER\" | grep -v -E \"^[ ]{1,}.*$\" | tee -a \"$LOG_STDOUT\" 3>&1 1>&2 2>&3 | tee -a \"$LOG_STDERR\"
+        sudo rsync \"${OPTIONS_ARRAY[@]}\" \"$SRC_FOLDER\" \"$DEST_FOLDER\" | grep -v -E '^\s{1,}.*$' | tee -a \"$LOG_STDOUT\" 3>&1 1>&2 2>&3 | tee -a \"$LOG_STDERR\"
 "
     echo "$log_str" | tee -a "$LOG_STDOUT"
 
@@ -408,11 +411,20 @@ Now running rsync cmd:
     # Actually run the rsync cmd here!:
     # NB: explicitly include `--dry-run` for safety in testing, thereby forcing *all* runs to be
     # dry-runs!
-    # sudo rsync --dry-run "${OPTIONS_ARRAY[@]}" "$SRC_FOLDER" "$DEST_FOLDER" | grep -v -E "^[ ]{1,}.*$" | tee -a "$LOG_STDOUT" 3>&1 1>&2 2>&3 | tee -a "$LOG_STDERR"  # for testing
-    sudo rsync "${OPTIONS_ARRAY[@]}" "$SRC_FOLDER" "$DEST_FOLDER" | grep -v -E "^[ ]{1,}.*$" | tee -a "$LOG_STDOUT" 3>&1 1>&2 2>&3 | tee -a "$LOG_STDERR"  # the final version
+    # sudo rsync --dry-run "${OPTIONS_ARRAY[@]}" "$SRC_FOLDER" "$DEST_FOLDER" | grep -v -E '^\s{1,}.*$' | tee -a "$LOG_STDOUT" 3>&1 1>&2 2>&3 | tee -a "$LOG_STDERR"  # for testing
+    #
+    # How to tee to another process instead of to a file: https://unix.stackexchange.com/a/542526/114401
+    ######### sudo rsync "${OPTIONS_ARRAY[@]}" "$SRC_FOLDER" "$DEST_FOLDER" | grep -v -E '^\s{1,}.*$' | tee -a "$LOG_STDOUT" 3>&1 1>&2 2>&3 | tee -a "$LOG_STDERR"  # the final version
+    # sudo rsync "${OPTIONS_ARRAY[@]}" "$SRC_FOLDER" "$DEST_FOLDER" | tee >(grep -v -E '^\s{1,}.*$') | tee -a "$LOG_STDOUT" 3>&1 1>&2 2>&3 | tee -a "$LOG_STDERR"  # the final version
+    sudo rsync "${OPTIONS_ARRAY[@]}" "$SRC_FOLDER" "$DEST_FOLDER" | tee >(grep -v -E '^\s{1,}.*$' >> "$LOG_STDOUT") 3>&1 1>&2 2>&3 | tee -a "$LOG_STDERR"  # the final version
 
     log_str="\n====== RSYNC LOG END ======\n"
     echo -e "$log_str" | tee -a "$LOG_STDOUT" "$LOG_STDERR"
+
+    ######## clean up the cmds above! Write answer online for how to see "deleting" files, and to
+    ######## indicate that rsync logfiles do NOT contain this info, unfortunately!
+
+    #### improve the stdout logging so that its lines will better match the rsync log file lines, with timestamps and all!
 } # do_rsync_backup
 
 print_elapsed_time() {
@@ -439,6 +451,11 @@ copy_source_code() {
     cp ~/.back_up_linux_pc.config.sh "$LOG_SUBFOLDER/src/"
     cp ~/.back_up_linux_pc.files_to_exclude.rsync "$LOG_SUBFOLDER/src/"
     cp ~/.back_up_linux_pc.files_to_include.rsync "$LOG_SUBFOLDER/src/"
+}
+
+log_deleted_files() {
+    ####### make the deleted.txt file path a user parameter, probably, in the config file
+    grep -E '^\*deleting' "$LOG_STDOUT" > "$LOG_SUBFOLDER/deleted.txt" ########## echo to user that files being deleted are here!
 }
 
 main() {
@@ -541,6 +558,8 @@ User settings:
 
     configure_variables
     do_rsync_backup
+    log_deleted_files
+
     print_elapsed_time
 
     # TODO: REIMPLEMENT THIS LAST STEP AND ENSURE IT WORKS AGAIN!
