@@ -108,6 +108,8 @@ rsync --version
 
             > Simply move compression from rsync to ssh: `-a -e "ssh -C"`
 
+1. [NEED TO STUDY & READ] How to interpret the symbols and meaning in rsync logs: [What does f+++++++++ mean in rsync logs?](https://stackoverflow.com/a/12037164/4561887)
+
 
 ## TODO
 
