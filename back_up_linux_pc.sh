@@ -101,6 +101,10 @@
 
 RETURN_CODE_SUCCESS=0
 RETURN_CODE_ERROR=1
+
+VERSION="0.1.0"
+AUTHOR="Gabriel Staples"
+
 SCRIPT_NAME="$(basename "$0")"
 FULL_TERMINAL_CMD="$0 $@"
 
@@ -156,7 +160,12 @@ write_options_array() {
         # https://linux.die.net/man/5/rsyncd.conf <-- look at the "log format" section.
         # "--log-file-format" '%i %n%L'  # default
         # "--log-file-format" '%i %l Bytes "%n"%L'  # add length of file in bytes **before** filename; put path in quotes
+
         "--log-file-format" '%i "%n"%L  %l Bytes'  # add length of file in bytes **after** filename; put path in quotes
+        # "--log-file-format" "'"'%i "%n"%L  %l Bytes'"'"  # add length of file in bytes **after** filename; put path in quotes
+                                                         # Quote help: https://stackoverflow.com/a/1250279/4561887
+                                                         ######### don't do this single quote thing! Expand the array differently to show the expanded form with quotes around stuff, instead!
+                                                         ##### "ls" and ls have no difference, for instance!
         # "--log-file-format" '%i %f%L'
         # "--log-file-format" '%i %f%L %l'
         "--itemize-changes"  # I'm experimenting with this; see: https://unix.stackexchange.com/a/203871/114401
@@ -345,6 +354,22 @@ configure_variables() {
     write_options_array
 }
 
+# Expand an array for printing by quoting and printing all elements within it
+expand_array() {
+    i=0
+    for arg in "$@"; do
+        ((i++))
+
+        # printf "%s" "'""$arg""'"  # Quote help: https://stackoverflow.com/a/1250279/4561887
+        printf "'%s'" "$arg"  # same thing, but simpler
+
+        # print a space after all but the last element
+        if [ "$i" -lt "$#" ]; then
+            printf "%s" " "
+        fi
+    done
+}
+
 do_rsync_backup() {
     # Do the actual backup!
     #
@@ -378,6 +403,41 @@ do_rsync_backup() {
     # cmd1='(sudo rsync "${OPTIONS_ARRAY[@]}" $SRC_FOLDER $DEST_FOLDER | tee -a $LOG_STDOUT) 3>&1 1>&2 2>&3 | tee -a $LOG_STDERR $LOG_STDOUT'
     # # cmd WITH variable substitution performed
     # cmd2="(sudo rsync "${OPTIONS_ARRAY[@]}" $SRC_FOLDER $DEST_FOLDER | tee -a $LOG_STDOUT) 3>&1 1>&2 2>&3 | tee -a $LOG_STDERR $LOG_STDOUT"
+
+    # For some quoting help and the meaning of `'"'"'`, see:
+    # 1. https://stackoverflow.com/a/1250279/4561887
+    # 2. [my answer] https://stackoverflow.com/a/65878993/4561887
+
+    # not expanded
+    cmd1='sudo rsync "${OPTIONS_ARRAY[@]}" "$SRC_FOLDER" "$DEST_FOLDER" \
+        | tee >(grep -v -E '"'"'^\s{1,}.*$'"'"' >> "$LOG_STDOUT") 3>&1 1>&2 2>&3 | tee -a "$LOG_STDERR"'
+    # expanded
+    # cmd2="sudo rsync ${OPTIONS_ARRAY[@]} \"$SRC_FOLDER\" \"$DEST_FOLDER\" | tee >(grep -v -E '^\s{1,}.*$' >> \"$LOG_STDOUT\") 3>&1 1>&2 2>&3 | tee -a \"$LOG_STDERR\""
+    ###########
+    cmd2="sudo rsync $(expand_array "${OPTIONS_ARRAY[@]}") \"$SRC_FOLDER\" \"$DEST_FOLDER\" \
+        | tee >(grep -v -E '^\s{1,}.*$' >> \"$LOG_STDOUT\") 3>&1 1>&2 2>&3 | tee -a \"$LOG_STDERR\""
+
+    cmd="$cmd1"
+    cmd_expanded="$cmd2"
+
+    # cmd_expanded="$(eval echo "$cmd")"
+    # cmd_expanded="$(echo "${!cmd}")"
+
+    echo ""
+    echo "cmd:"
+    echo "$cmd"
+    echo ""
+    echo "cmd_expanded:"
+    echo "$cmd_expanded"
+    echo ""
+
+    exit ########
+
+    eval "$cmd_expanded"  # works!
+
+
+    # "$cmd1"
+    sudo rsync "${OPTIONS_ARRAY[@]}" "$SRC_FOLDER" "$DEST_FOLDER" | tee >(grep -v -E '"'"'^\s{1,}.*$'"'"' >> "$LOG_STDOUT") 3>&1 1>&2 2>&3 | tee -a "$LOG_STDERR"
 
     # Log the command to the top of the stdout log file
     log_str="
@@ -416,7 +476,10 @@ Now running rsync cmd:
     # How to tee to another process instead of to a file: https://unix.stackexchange.com/a/542526/114401
     ######### sudo rsync "${OPTIONS_ARRAY[@]}" "$SRC_FOLDER" "$DEST_FOLDER" | grep -v -E '^\s{1,}.*$' | tee -a "$LOG_STDOUT" 3>&1 1>&2 2>&3 | tee -a "$LOG_STDERR"  # the final version
     # sudo rsync "${OPTIONS_ARRAY[@]}" "$SRC_FOLDER" "$DEST_FOLDER" | tee >(grep -v -E '^\s{1,}.*$') | tee -a "$LOG_STDOUT" 3>&1 1>&2 2>&3 | tee -a "$LOG_STDERR"  # the final version
-    sudo rsync "${OPTIONS_ARRAY[@]}" "$SRC_FOLDER" "$DEST_FOLDER" | tee >(grep -v -E '^\s{1,}.*$' >> "$LOG_STDOUT") 3>&1 1>&2 2>&3 | tee -a "$LOG_STDERR"  # the final version
+
+    # sudo rsync "${OPTIONS_ARRAY[@]}" "$SRC_FOLDER" "$DEST_FOLDER" | tee >(grep -v -E '^\s{1,}.*$' >> "$LOG_STDOUT") 3>&1 1>&2 2>&3 | tee -a "$LOG_STDERR"  # the final version
+    # ${cmd[@]}
+
 
     log_str="\n====== RSYNC LOG END ======\n"
     echo -e "$log_str" | tee -a "$LOG_STDOUT" "$LOG_STDERR"
