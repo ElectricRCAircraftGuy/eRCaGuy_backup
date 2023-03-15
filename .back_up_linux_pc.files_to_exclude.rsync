@@ -95,8 +95,14 @@
 /root/.local/share/Trash/
 # No need for this stuff
 /usr/local/cuda-8.0/*
-# No need for this stuff
-/usr/local/lib/*
+# No need for this stuff; Update: actually, **do** keep `/usr/local/lib`! It contains user-installed
+# system-wide .a static C and C++ libraries, and .so shared object dynamic libraries, which I may
+# have manually built and might want to copy out again to another computer with the same OS in the
+# future.
+# For more info, see my answers here:
+# 1. https://stackoverflow.com/a/75718815/4561887
+# 1. https://stackoverflow.com/a/75719053/4561887
+# /usr/local/lib/*
 /var/cache/
 # No need for this stuff
 /var/lib/*
