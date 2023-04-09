@@ -5,6 +5,23 @@
 Newest dates on _TOP_:
 
 
+## 20230321
+
+1. [ ] Improve logging of deleted files, and notifications to user
+1. [ ] Make sure to update the logs to indicate which config dir is being run.
+
+    Ex: 
+
+    ```bash
+    ~/rsync_logs/to_4TB_hdd/20230316-0900hrs21sec_dryrun/
+
+    ~/rsync_logs/default/20230316-0900hrs21sec_dryrun/
+
+    # etc. 
+    ```
+
+    Let the "default" one be a symlink to another name if the default config dir is also a symlink to another name. 
+
 ## 20230219
 
 1. [x] Use date-named log *dir* instead of *file*. Copy all 3 config files and even the backup script itself into this dir as part of the log files at the time of back up. This way, all script files and contents are present in case I need to look at the include or exclude list or track down something in particular in the script at the time of backup.
