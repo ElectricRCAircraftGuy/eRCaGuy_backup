@@ -9,7 +9,8 @@
 # Set the destination folder
 
 # Option 1: back up to a USB drive (recommended: back up to an encrypted USB drive only)
-DEST_FOLDER="/media/gabriel/Linux_bak/Backups/rsync/Main_Dell_laptop"
+# DEST_FOLDER="/media/gabriel/Linux_bak/Backups/rsync/Main_Dell_laptop"    # GS: to my 4 TB HDD
+DEST_FOLDER="/media/gabriel/Linux_bak_ssd/Backups/rsync/Main_Dell_laptop"  # GS: to my 2 TB SSD
 # Option 2: back up to a target machine over ssh; use syntax expected by rsync
 # - If using this option, also set something valid in `PRIV_SSH_KEY` below.
 # DEST_FOLDER="gabriel@192.168.0.2:/media/gabriel/Linux_bak/Backups/rsync/Main_Dell_laptop"
