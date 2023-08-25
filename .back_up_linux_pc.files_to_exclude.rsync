@@ -60,6 +60,7 @@
 /home/*/.config/google-chrome/
 # Trash folders; see: https://askubuntu.com/a/102106/327339
 /home/*/.local/share/Trash/
+/home/*/.vscode/*
 /home/*/Downloads*/Install_Files*/Arduino/*
 /home/*/Downloads*/Install_Files*/Chrome/*
 /home/*/Downloads*/Install_Files*/Cura/*
